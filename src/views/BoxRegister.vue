@@ -20,6 +20,11 @@ const tagOptions = ['厨房', '衣物', '证件', '书籍', '电子', '杂物'];
 
 async function load() {
   task.value = await getTask(route.params.id as string);
+  if (task.value && task.value.status === 'void') {
+    alert(`单号 ${task.value.orderNo} 已作废，不能再登记箱子`);
+    router.replace(`/task/${task.value.id}`);
+    return;
+  }
   if (task.value && task.value.rooms.length > 0) {
     roomTo.value = task.value.rooms[0];
   }

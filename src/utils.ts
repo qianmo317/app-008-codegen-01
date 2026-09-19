@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import type { MoveTask, BoxStatus } from './types';
+import type { MoveTask, BoxStatus, AddressInfo } from './types';
 
 export function uid(): string {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -7,6 +7,97 @@ export function uid(): string {
 
 export function todayStr(): string {
   return new Date().toISOString().split('T')[0];
+}
+
+// ---------- 单号 ----------
+
+export function localDateKey(ts: number = Date.now()): string {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+// 单号 = 前缀 + 年月日 + 当日流水，如 MV20260919-003
+export function formatOrderNo(dateKey: string, seq: number): string {
+  return `MV${dateKey}-${String(seq).padStart(3, '0')}`;
+}
+
+// ---------- 开单校验 ----------
+
+export function validatePhone(raw: string): string | null {
+  const phone = raw.trim().replace(/[\s-]/g, '');
+  if (!phone) return '请填写联系电话';
+  if (/^1[3-9]\d{9}$/.test(phone)) return null; // 手机号
+  if (/^0\d{9,11}$/.test(phone)) return null; // 座机：区号 + 号码
+  return '联系电话格式不正确（手机号 11 位，或区号+座机号）';
+}
+
+// 详细地址里应出现的“落地”信息：数字/字母或街道、门牌类关键字
+const ADDRESS_DETAIL_SIGNALS =
+  /[0-9０-９A-Za-z]|路|街|巷|弄|号|栋|幢|座|楼|村|屯|小区|苑|园|院|大厦|广场|中心|大道|镇|乡|单元|室|层|坊|里|胡同/;
+
+// 只写了城市/区县、没有任何街道门牌信息的地址一律拦住
+export function isAddressTooVague(detail: string): boolean {
+  const s = detail.trim();
+  if (s.length < 4) return true;
+  return !ADDRESS_DETAIL_SIGNALS.test(s);
+}
+
+export function looksLikeOffice(detail: string): boolean {
+  return /写字楼|大厦|办公楼|商务楼|商务中心|SOHO|soho|总部|园区|产业园/.test(detail);
+}
+
+// 写字楼（手动勾选或地址关键字识别）必须带楼层与门牌
+export function needsFloorUnit(addr: AddressInfo): boolean {
+  return addr.isOffice || looksLikeOffice(addr.detail);
+}
+
+export function validateAddress(addr: AddressInfo, label: string): string | null {
+  const detail = addr.detail.trim();
+  if (!detail) return `请填写${label}`;
+  if (isAddressTooVague(detail)) {
+    return `${label}只写到了城市/区县，请补充街道、小区、门牌等详细信息`;
+  }
+  if (needsFloorUnit(addr)) {
+    if (!addr.floor?.trim()) return `${label}是写字楼，请填写楼层`;
+    if (!addr.unit?.trim()) return `${label}是写字楼，请填写门牌号`;
+  }
+  return null;
+}
+
+export function validateOrderForm(input: {
+  contactPhone: string;
+  fromAddress: AddressInfo;
+  toAddress: AddressInfo;
+}): string[] {
+  const errors: string[] = [];
+  const phoneErr = validatePhone(input.contactPhone);
+  if (phoneErr) errors.push(phoneErr);
+  const fromErr = validateAddress(input.fromAddress, '出发地址');
+  if (fromErr) errors.push(fromErr);
+  const toErr = validateAddress(input.toAddress, '目的地址');
+  if (toErr) errors.push(toErr);
+  return errors;
+}
+
+// 组合展示用地址：详细地址 +（楼层 门牌）
+export function composeAddress(addr: AddressInfo): string {
+  const detail = addr.detail.trim();
+  const floor = addr.floor?.trim();
+  const unit = addr.unit?.trim();
+  if (!floor && !unit) return detail;
+  const parts: string[] = [];
+  if (floor) parts.push(`${floor.replace(/[层楼]$/, '')}层`);
+  if (unit) parts.push(unit);
+  return `${detail}（${parts.join(' ')}）`;
+}
+
+export function formatDateTime(ts: number): string {
+  const d = new Date(ts);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 export function generateBoxCode(task: MoveTask, roomTo: string): string {

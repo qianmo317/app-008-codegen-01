@@ -44,6 +44,7 @@ function exportSheet() {
   if (!task.value) return;
   const lines = [
     `搬家箱单 - ${task.value.title}`,
+    `单号: ${task.value.orderNo}（第${task.value.addressVersion}版）`,
     `日期: ${task.value.date}`,
     `从: ${task.value.from} → 到: ${task.value.to}`,
     '',
@@ -136,7 +137,7 @@ onMounted(load);
       <!-- hidden area for PDF export -->
       <div ref="pdfArea" style="position:absolute;left:-9999px;top:0;width:800px;background:#fff;color:#000;padding:20px;">
         <h2 style="margin:0 0 10px;">搬家箱单 - {{ task.title }}</h2>
-        <p style="margin:0 0 6px;">日期: {{ task.date }} | 从: {{ task.from }} → 到: {{ task.to }}</p>
+        <p style="margin:0 0 6px;">单号: {{ task.orderNo }}（第{{ task.addressVersion }}版） | 日期: {{ task.date }} | 从: {{ task.from }} → 到: {{ task.to }}</p>
         <table style="width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;">
           <thead>
             <tr style="background:#f3f4f6;">

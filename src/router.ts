@@ -4,6 +4,7 @@ const routes = [
   { path: '/', name: 'TaskList', component: () => import('./views/TaskList.vue') },
   { path: '/new', name: 'TaskNew', component: () => import('./views/TaskNew.vue') },
   { path: '/task/:id', name: 'TaskOverview', component: () => import('./views/TaskOverview.vue') },
+  { path: '/task/:id/edit', name: 'TaskEdit', component: () => import('./views/TaskEdit.vue') },
   { path: '/task/:id/box/:code', name: 'BoxDetail', component: () => import('./views/BoxDetail.vue') },
   { path: '/task/:id/register', name: 'BoxRegister', component: () => import('./views/BoxRegister.vue') },
   { path: '/task/:id/labels', name: 'LabelsPrint', component: () => import('./views/LabelsPrint.vue') },
