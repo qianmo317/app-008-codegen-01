@@ -27,6 +27,7 @@ onMounted(load);
     </div>
     <div class="page">
       <button class="btn btn-block" @click="router.push('/new')">+ 新建搬家任务</button>
+      <button class="btn btn-secondary btn-block" style="margin-top:10px;" @click="router.push('/orders')">搬家工单（开单 / 单号）</button>
       <div v-if="tasks.length === 0" class="empty">暂无任务，点击上方按钮新建</div>
       <div v-for="t in tasks" :key="t.id" class="card" @click="router.push(`/task/${t.id}`)">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
